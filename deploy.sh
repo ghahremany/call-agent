@@ -14,13 +14,22 @@ DEST="${1:-/htdocs/voice}"
 : "${FTP_PASS:?FTP_PASS لازم است}"
 
 BASE="ftp://${FTP_HOST}"
-FILES=(api.php panel.php call.html voice-widget.js .htaccess
-       voice-config.php voice-core.php voice-jalali.php voice-store.php voice-doc.php
-       voice-prov.php voice-totp.php voice-nlu.php voice-brain.php)
+# همهٔ php ها به‌جز فایل‌های حساس، به‌علاوهٔ فایل‌های ثابت.
+# فهرست دستی نگه‌داشتن باعث شد voice-sec.php جا بماند و پنل ۵۰۰ بدهد.
+FILES=()
+for f in *.php; do
+  case "$f" in
+    voice-secrets.php|voice-panel-auth.php|voice-secrets.example.php) continue ;;
+  esac
+  FILES+=("$f")
+done
+for f in call.html demo.html voice-widget.js .htaccess; do
+  [ -f "$f" ] && FILES+=("$f")
+done
 # توجه: voice-secrets.php عمداً اینجا نیست — دستی و یک‌بار آپلود می‌شود.
 
 echo "→ ساخت پوشه‌ها"
-for d in "" sessions cache logs data; do
+for d in "" sessions cache logs data backups; do
   curl -sS --ftp-create-dirs -u "${FTP_USER}:${FTP_PASS}" -T /dev/null "${BASE}${DEST}/${d}/.keep" >/dev/null 2>&1 || true
 done
 
@@ -30,7 +39,7 @@ for f in "${FILES[@]}"; do
   echo "   ${f}"
 done
 
-for d in sessions cache logs data; do
+for d in sessions cache logs data backups; do
   curl -sS --ftp-create-dirs -u "${FTP_USER}:${FTP_PASS}" -T "${DIR}/${d}/.htaccess" "${BASE}${DEST}/${d}/.htaccess"
   echo "   ${d}/.htaccess"
 done

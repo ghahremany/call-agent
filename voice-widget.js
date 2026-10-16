@@ -17,8 +17,12 @@
   })();
   var CALL_URL = me && me.src ? me.src.replace(/voice-widget\.js(\?.*)?$/, "call.html") : "/voice/call.html";
 
-  var TITLE = (me && me.getAttribute("data-title")) || "تماس با کلینیک";
-  var SUB   = (me && me.getAttribute("data-sub"))   || "برای رزرو نوبت، صحبت کنید";
+  var TITLE = (me && me.getAttribute("data-title")) || "تماس صوتی";
+  // کدام دانشنامه؟ هر سایت نوع خودش را می‌فرستد
+  var KIND  = (me && me.getAttribute("data-kb"))    || "personal";
+  CALL_URL += (CALL_URL.indexOf("?") < 0 ? "?" : "&")
+            + "kb=" + encodeURIComponent(KIND)
+            + "&title=" + encodeURIComponent(TITLE);
 
   if (document.getElementById("nyCallBtn")) return;   // دوبار نصب نشود
 
@@ -38,7 +42,7 @@
     "#nyCallBox{position:relative;width:100%;max-width:400px;height:100%;max-height:760px;border-radius:34px;",
     "overflow:hidden;background:#0d1f22;box-shadow:0 30px 90px rgba(0,0,0,.6);border:1px solid rgba(255,255,255,.1)}",
     "#nyCallBox iframe{width:100%;height:100%;border:0;display:block}",
-    "#nyCallX{position:absolute;top:12px;left:12px;width:34px;height:34px;border-radius:50%;border:0;cursor:pointer;",
+    "#nyCallX{position:absolute;top:58px;left:14px;width:32px;height:32px;border-radius:50%;border:0;cursor:pointer;",
     "background:rgba(255,255,255,.14);color:#fff;font-size:17px;line-height:1;z-index:2}",
     "#nyCallX:hover{background:rgba(255,255,255,.26)}",
     "@media(max-width:520px){#nyCallWin{padding:0}#nyCallBox{max-width:none;max-height:none;border-radius:0;border:0}}",

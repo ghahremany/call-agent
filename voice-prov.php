@@ -60,7 +60,7 @@ function prov_mark(int $id, bool $ok, string $err = ''): void
         $p['last_err']   = '';
     } else {
         $p['fail_count'] = (int) ($p['fail_count'] ?? 0) + 1;
-        $p['last_err']   = mb_substr(preg_replace('/\s+/', ' ', $err) ?? '', 0, 200);
+        $p['last_err']   = v_cut((string) preg_replace('/\s+/', ' ', $err), 200);
     }
     doc_put('prov', $p);
 }
@@ -78,32 +78,75 @@ function prov_test(array $p): array
     return ['ok' => $r['code'] === 200 && $r['text'] !== '', 'code' => $r['code'], 'text' => $r['text']];
 }
 
-/* ───────────── دانشنامه ───────────── */
+/* ───────────── دانشنامه (چندگانه) ───────────── */
 
-/** آخرین نسخهٔ دانشنامه */
-function kb_get(): string
+/**
+ * هر دانشنامه یک «نوع» دارد: personal برای سایت شخصی، ngy برای نگهبان‌یار…
+ * ویجت هر سایت نوع خودش را می‌فرستد، پس یک نصب، چند دستیار می‌دهد.
+ */
+const KB_KINDS = [
+    'personal' => 'دستیار شخصی (سایت خودم)',
+    'ngy'      => 'پشتیبان نگهبان‌یار',
+    'clinic'   => 'منشی کلینیک',
+];
+
+function kb_kind(string $k): string
 {
-    $rows = doc_all('kb');
-    if (!$rows) {
-        return '';
-    }
-    usort($rows, static fn($a, $b) => ((int) ($b['id'] ?? 0)) <=> ((int) ($a['id'] ?? 0)));
-    return (string) ($rows[0]['content'] ?? '');
+    $k = preg_replace('/[^a-z_]/', '', strtolower($k)) ?? '';
+    return isset(KB_KINDS[$k]) ? $k : 'personal';
 }
 
-function kb_save(string $content, string $note = ''): int
+/** آخرین نسخهٔ یک نوع، با پیش‌فرض‌ها */
+function kb_doc(string $kind = 'personal'): array
 {
-    return doc_put('kb', [
+    $kind = kb_kind($kind);
+    $rows = array_values(array_filter(doc_all('kb'), static fn($r) => ($r['kind'] ?? 'personal') === $kind));
+    usort($rows, static fn($a, $b) => ((int) ($b['id'] ?? 0)) <=> ((int) ($a['id'] ?? 0)));
+
+    $d = $rows[0] ?? [];
+    return [
+        'id'       => (int) ($d['id'] ?? 0),
+        'kind'     => $kind,
+        'content'  => (string) ($d['content'] ?? ''),
+        'title'    => (string) ($d['title'] ?? vcfg('clinic')),
+        'greeting' => (string) ($d['greeting'] ?? vcfg('greeting')),
+        'mode'     => (string) ($d['mode'] ?? 'contact'),   // contact | booking
+        'note'     => (string) ($d['note'] ?? ''),
+        'at'       => (string) ($d['at'] ?? ''),
+    ];
+}
+
+function kb_get(string $kind = 'personal'): string
+{
+    return kb_doc($kind)['content'];
+}
+
+function kb_save(string $kind, string $content, string $note = '', array $extra = []): int
+{
+    return doc_put('kb', array_merge([
+        'kind'    => kb_kind($kind),
         'content' => $content,
         'note'    => $note !== '' ? $note : 'ویرایش دستی',
         'at'      => date('c'),
-    ]);
+    ], $extra));
 }
 
-/** تاریخچهٔ نسخه‌ها (بدون متن کامل، برای فهرست) */
-function kb_history(int $limit = 20): array
+/** انواعی که واقعاً دانشنامه دارند */
+function kb_kinds_used(): array
 {
-    $rows = doc_all('kb');
+    $out = [];
+    foreach (doc_all('kb') as $r) {
+        $k = (string) ($r['kind'] ?? 'personal');
+        $out[$k] = KB_KINDS[$k] ?? $k;
+    }
+    return $out;
+}
+
+/** تاریخچهٔ نسخه‌های یک نوع */
+function kb_history(string $kind = 'personal', int $limit = 20): array
+{
+    $kind = kb_kind($kind);
+    $rows = array_values(array_filter(doc_all('kb'), static fn($r) => ($r['kind'] ?? 'personal') === $kind));
     usort($rows, static fn($a, $b) => ((int) ($b['id'] ?? 0)) <=> ((int) ($a['id'] ?? 0)));
     return array_map(static fn($r) => [
         'id'   => (int) $r['id'],
@@ -116,7 +159,7 @@ function kb_history(int $limit = 20): array
 /* ───────────── پرامپت سیستمی ───────────── */
 
 /** پرامپت پایه + دانشنامه + فهرست وقت‌های آزاد */
-function v_llm_system(array $slots): string
+function v_llm_system(array $slots, string $kind = 'personal'): string
 {
     $list = $slots
         ? implode("\n", array_map(static fn($s) => '- ' . $s, $slots))
@@ -124,16 +167,9 @@ function v_llm_system(array $slots): string
 
     $sys = str_replace('{slots}', $list, (string) vcfg('llm_system'));
 
-    $kb = trim(kb_get());
-    if ($kb !== '') {
-        $sys .= "\n\n--- CLINIC KNOWLEDGE BASE (authoritative) ---\n"
-              . $kb . "\n"
-              . "--- END KNOWLEDGE BASE ---\n"
-              . "Use the knowledge base above for anything about this clinic: services, hours,\n"
-              . "address, rules, tone of voice. If the knowledge base does not cover something,\n"
-              . "say a human colleague will explain, and never invent facts.\n";
-    }
-    return $sys;
+    // دانشنامه به‌عنوان «مرجع» جای‌گذاری می‌شود، نه دستور — وگرنه مدل
+    // به‌جای JSON، محاوره‌ای جواب می‌دهد.
+    return str_replace('{kb}', trim(kb_get($kind)), $sys);
 }
 
 /* ───────────── فهم جملهٔ کاربر ───────────── */
@@ -143,9 +179,9 @@ function v_llm_system(array $slots): string
  *          'requested_slot'=>, 'reply'=>, '_provider'=>]
  * اگر همهٔ ربات‌ها خطا بدهند، آرایهٔ خالی برمی‌گردد.
  */
-function v_llm_understand(array $slots, array $history, string $heard): array
+function v_llm_understand(array $slots, array $history, string $heard, string $kind = 'personal'): array
 {
-    $messages = [['role' => 'system', 'content' => v_llm_system($slots)]];
+    $messages = [['role' => 'system', 'content' => v_llm_system($slots, $kind)]];
     foreach ($history as $m) {
         if (isset($m['role'], $m['content'])) {
             $messages[] = ['role' => $m['role'], 'content' => $m['content']];
@@ -170,9 +206,22 @@ function v_llm_understand(array $slots, array $history, string $heard): array
             continue;
         }
         $parsed = v_json_loose($res['text']);
+
+        // اگر مدل به‌جای JSON حرف زد، یک بار با تذکر سخت‌گیرانه دوباره بپرس
+        if ($parsed === null) {
+            v_log('LLM(' . ($p['name'] ?? '?') . ') بار اول JSON نداد — تلاش دوباره');
+            $retry = $messages;
+            $retry[] = ['role' => 'assistant', 'content' => v_cut($res['text'], 300)];
+            $retry[] = ['role' => 'user', 'content' => 'That was not valid JSON. Reply with ONE JSON object only, no other text.'];
+            $res2 = v_chat($base, $token, $model, $retry, true);
+            if ($res2['code'] === 200 && $res2['text'] !== '') {
+                $parsed = v_json_loose($res2['text']);
+            }
+        }
+
         if ($parsed === null) {
             prov_mark($id, false, 'خروجی JSON نبود');
-            v_log('LLM(' . ($p['name'] ?? '?') . ') خروجی JSON نبود: ' . substr($res['text'], 0, 200));
+            v_log('LLM(' . ($p['name'] ?? '?') . ') خروجی JSON نبود: ' . v_cut($res['text'], 200));
             continue;
         }
         prov_mark($id, true);

@@ -2,121 +2,213 @@
 <html lang="fa" dir="rtl">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
 <meta name="robots" content="noindex">
-<title>تماس با کلینیک</title>
+<meta name="theme-color" content="#0b0b0f">
+<title>تماس صوتی</title>
 <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;600;800&display=swap" rel="stylesheet">
 <style>
 :root{
-  --ink:#eaf5f3; --mute:#9fb8b5; --accent:#1b6b68; --ring:#3fbfae;
-  --end:#c0392b; --dark:#0d1f22;
+  --ios-green:#30d158; --ios-red:#ff453a; --ios-gray:rgba(255,255,255,.16);
+  --ink:#fff; --mute:#a1a1aa; --bezel:#0b0b0f;
 }
-*{box-sizing:border-box}
-html,body{height:100%;margin:0}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;margin:0;overflow:hidden}
 body{
-  background:radial-gradient(120% 90% at 50% 0%, #16383b 0%, #0d1f22 60%, #08161a 100%);
-  color:var(--ink); font-family:Vazirmatn,Tahoma,sans-serif;
-  display:flex; flex-direction:column; align-items:center; justify-content:center;
-  gap:16px; padding:18px; text-align:center; overflow:hidden;
+  background:#000;color:var(--ink);
+  font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Vazirmatn",Tahoma,sans-serif;
+  display:flex;align-items:center;justify-content:center;
 }
-.frame{
-  width:100%; max-width:380px; height:100%; max-height:720px;
-  display:flex; flex-direction:column; align-items:center; justify-content:space-between;
-  padding:34px 20px 26px; border-radius:34px;
-  background:linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.01));
-  border:1px solid rgba(255,255,255,.08);
-  box-shadow:0 30px 80px rgba(0,0,0,.55), inset 0 1px 0 rgba(255,255,255,.07);
-}
-.top{display:flex;flex-direction:column;align-items:center;gap:6px}
-.clinic{font-size:1.15rem;font-weight:800;letter-spacing:.2px}
-.sub{color:var(--mute);font-size:.82rem;min-height:1.4em}
 
-.stage{position:relative;width:170px;height:170px;display:grid;place-items:center;margin:8px 0}
-.ring{position:absolute;inset:0;border-radius:50%;background:var(--ring);opacity:.16;transform:scale(var(--lv,1));transition:transform .09s linear}
+/* ── بدنهٔ آیفون ── */
+.iphone{
+  position:relative;width:100%;max-width:390px;height:100%;max-height:844px;
+  border-radius:54px;background:var(--bezel);padding:11px;
+  box-shadow:0 0 0 2px #2c2c31, 0 0 0 5px #131316, 0 40px 90px rgba(0,0,0,.85);
+}
+.screen{
+  position:relative;width:100%;height:100%;border-radius:44px;overflow:hidden;
+  background:
+    radial-gradient(120% 70% at 50% 0%, #2b2f3a 0%, #14161d 45%, #0a0b0f 100%);
+  display:flex;flex-direction:column;align-items:center;
+  padding:0 26px 26px;
+}
+/* Dynamic Island */
+.island{
+  position:absolute;top:11px;left:50%;transform:translateX(-50%);
+  width:118px;height:34px;border-radius:20px;background:#000;z-index:5;
+}
+.island::after{
+  content:'';position:absolute;top:9px;right:14px;width:9px;height:9px;border-radius:50%;
+  background:#1b1f2a;box-shadow:inset 0 0 3px #2f3a4d;
+}
+/* نوار وضعیت */
+.statusbar{
+  width:100%;padding:16px 8px 0;display:flex;justify-content:space-between;
+  font-size:13px;font-weight:600;letter-spacing:.2px;color:#e7e7ea;
+}
+.statusbar .icons{display:flex;gap:5px;align-items:center;opacity:.9}
+.bars{display:flex;gap:2px;align-items:flex-end;height:11px}
+.bars i{width:3px;background:#e7e7ea;border-radius:1px}
+.bars i:nth-child(1){height:4px}.bars i:nth-child(2){height:6px}
+.bars i:nth-child(3){height:8px}.bars i:nth-child(4){height:11px}
+.batt{width:24px;height:12px;border:1.5px solid #e7e7ea;border-radius:3px;position:relative}
+.batt::after{content:'';position:absolute;inset:1.5px;width:70%;background:#e7e7ea;border-radius:1px}
+.batt::before{content:'';position:absolute;right:-4px;top:3px;width:2px;height:5px;background:#e7e7ea;border-radius:0 1px 1px 0}
+
+/* ── بخش اصلی ── */
+.main{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;width:100%}
+.stage{position:relative;width:168px;height:168px;display:grid;place-items:center}
+.ring{position:absolute;inset:0;border-radius:50%;background:#7dd3fc;opacity:.14;transform:scale(var(--lv,1));transition:transform .09s linear}
 .avatar{
-  position:relative;width:118px;height:118px;border-radius:50%;
-  background:linear-gradient(150deg,#2a8f88,#14524f);
-  display:grid;place-items:center;font-size:44px;font-weight:800;color:#eafffb;
-  box-shadow:0 14px 40px rgba(0,0,0,.4);
+  position:relative;width:124px;height:124px;border-radius:50%;
+  background:linear-gradient(160deg,#4b5563,#1f2937);
+  display:grid;place-items:center;font-size:46px;color:#e5e7eb;
+  box-shadow:0 18px 50px rgba(0,0,0,.55), inset 0 1px 0 rgba(255,255,255,.12);
 }
-/* موج‌های بوق */
-.ringing .ring{animation:wave 1.6s ease-out infinite}
-.ringing .ring:nth-child(2){animation-delay:.55s}
-@keyframes wave{0%{opacity:.34;transform:scale(1)}100%{opacity:0;transform:scale(1.55)}}
-/* موج‌های گفتار */
-.speaking .ring{animation:pulse 1.2s ease-in-out infinite}
-@keyframes pulse{50%{transform:scale(1.22)}}
+.ringing .ring{animation:wave 1.7s ease-out infinite}
+.ringing .ring:nth-child(2){animation-delay:.6s}
+@keyframes wave{0%{opacity:.3;transform:scale(1)}100%{opacity:0;transform:scale(1.6)}}
+.speaking .ring{animation:pulse 1.15s ease-in-out infinite}
+@keyframes pulse{50%{transform:scale(1.2)}}
 
-.status{font-weight:600;font-size:.95rem;min-height:1.6em}
-.timer{color:var(--mute);font-size:.8rem;font-variant-numeric:tabular-nums;min-height:1.2em}
-#log{color:var(--mute);font-size:.76rem;line-height:1.8;max-width:320px;min-height:2.4em}
-#log b{color:#cfe9e5;font-weight:600}
+.name{font-size:27px;font-weight:600;letter-spacing:-.3px;text-align:center}
+.status{font-size:15px;color:var(--mute);min-height:1.5em;text-align:center}
+.timer{font-size:15px;color:var(--mute);font-variant-numeric:tabular-nums;min-height:1.2em}
+#log{font-size:12.5px;color:#8b8b93;line-height:1.8;text-align:center;max-width:280px;min-height:2.2em}
+#log b{color:#d4d4d8;font-weight:600}
 
-.controls{display:flex;gap:14px;align-items:center}
-button{
-  border:0;cursor:pointer;font-family:inherit;display:grid;place-items:center;
-  transition:transform .18s, background .2s, box-shadow .2s;
+/* ── دکمه‌ها ── */
+.controls{width:100%;display:flex;flex-direction:column;align-items:center;gap:22px}
+.row6{display:grid;grid-template-columns:repeat(3,1fr);gap:20px 26px;justify-items:center}
+.cbtn{
+  width:68px;height:68px;border-radius:50%;border:0;cursor:pointer;
+  background:var(--ios-gray);color:#fff;display:grid;place-items:center;gap:0;
+  backdrop-filter:blur(12px);transition:background .18s,transform .18s;
 }
-#btn{
-  width:72px;height:72px;border-radius:50%;background:#1f7a52;color:#fff;
-  box-shadow:0 12px 30px rgba(31,122,82,.45);
+.cbtn svg{width:27px;height:27px;fill:#fff}
+.cbtn.on{background:#fff}
+.cbtn.on svg{fill:#111}
+.cbtn:hover{transform:scale(1.04)}
+.clabel{font-size:11.5px;color:var(--mute);margin-top:7px;text-align:center}
+.cwrap{display:flex;flex-direction:column;align-items:center}
+
+.end{
+  width:68px;height:68px;border-radius:50%;border:0;cursor:pointer;background:var(--ios-red);
+  display:grid;place-items:center;box-shadow:0 12px 30px rgba(255,69,58,.35);
+  transition:transform .18s;
 }
-#btn:hover{transform:scale(1.05)}
-#btn.on{background:var(--end);box-shadow:0 12px 30px rgba(192,57,43,.5)}
-#btn svg{width:32px;height:32px;fill:#fff;transition:transform .25s}
-#btn.on svg{transform:rotate(135deg)}
-.hint{color:var(--mute);font-size:.76rem}
+.end:hover{transform:scale(1.05)}
+.end svg{width:30px;height:30px;fill:#fff;transform:rotate(135deg)}
+.start{background:var(--ios-green);box-shadow:0 12px 30px rgba(48,209,88,.35)}
+.start svg{transform:none}
+
+.hint{font-size:11.5px;color:#6b7280;text-align:center;min-height:1.4em}
+@media (max-height:700px){
+  .avatar{width:104px;height:104px;font-size:38px}
+  .stage{width:146px;height:146px}
+  .name{font-size:23px}
+  .cbtn,.end{width:60px;height:60px}
+}
+@media (max-width:430px){
+  .iphone{border-radius:0;padding:0;max-width:none;max-height:none;box-shadow:none}
+  .screen{border-radius:0}
+}
 @media (prefers-reduced-motion:reduce){.ring{animation:none!important}}
 </style>
 </head>
 <body>
-<div class="frame">
-  <div class="top">
-    <div class="clinic" id="clinic">کلینیک زیبایی حاتم</div>
-    <div class="sub" id="sub">برای رزرو وقت معاینه، روی دکمهٔ سبز بزنید</div>
-  </div>
+<div class="iphone">
+  <div class="screen">
+    <div class="island"></div>
 
-  <div class="stage" id="stage">
-    <div class="ring"></div>
-    <div class="ring"></div>
-    <div class="avatar" id="avatar">☎</div>
-  </div>
+    <div class="statusbar">
+      <span id="clock">۹:۴۱</span>
+      <span class="icons">
+        <span class="bars"><i></i><i></i><i></i><i></i></span>
+        <span style="font-size:11px">5G</span>
+        <span class="batt"></span>
+      </span>
+    </div>
 
-  <div>
-    <div class="status" id="status">آمادهٔ تماس</div>
-    <div class="timer" id="timer"></div>
-    <div id="log"></div>
-  </div>
+    <div class="main">
+      <div class="stage" id="stage">
+        <div class="ring"></div>
+        <div class="ring"></div>
+        <div class="avatar" id="avatar">
+          <svg viewBox="0 0 24 24" style="width:52px;height:52px;fill:#cbd5e1">
+            <path d="M12 12a5 5 0 1 0 0-10 5 5 0 0 0 0 10Zm0 2c-4.4 0-8 2.7-8 6v1h16v-1c0-3.3-3.6-6-8-6Z"/>
+          </svg>
+        </div>
+      </div>
 
-  <div class="controls">
-    <button id="btn" aria-label="برقراری تماس">
-      <svg viewBox="0 0 24 24"><path d="M6.6 10.8a15.1 15.1 0 0 0 6.6 6.6l2.2-2.2a1 1 0 0 1 1-.25 11.4 11.4 0 0 0 3.6.57 1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1c0 1.25.2 2.45.57 3.6a1 1 0 0 1-.25 1z"/></svg>
-    </button>
+      <div class="name" id="name">تماس صوتی</div>
+      <div class="status" id="status">آماده</div>
+      <div class="timer" id="timer"></div>
+      <div id="log"></div>
+    </div>
+
+    <div class="controls">
+      <div class="row6" id="row6" style="display:none">
+        <div class="cwrap">
+          <button class="cbtn" id="muteBtn" aria-label="بی‌صدا">
+            <svg viewBox="0 0 24 24"><path d="M12 15a3 3 0 0 0 3-3V6a3 3 0 1 0-6 0v6a3 3 0 0 0 3 3Zm5-3a5 5 0 0 1-10 0H5a7 7 0 0 0 6 6.9V22h2v-3.1A7 7 0 0 0 19 12h-2Z"/></svg>
+          </button>
+          <div class="clabel" id="muteLbl">بی‌صدا</div>
+        </div>
+        <div class="cwrap">
+          <button class="cbtn" id="textBtn" aria-label="متن">
+            <svg viewBox="0 0 24 24"><path d="M4 5h16v2H4V5Zm0 6h16v2H4v-2Zm0 6h10v2H4v-2Z"/></svg>
+          </button>
+          <div class="clabel">متن</div>
+        </div>
+        <div class="cwrap">
+          <button class="cbtn" id="restartBtn" aria-label="از نو">
+            <svg viewBox="0 0 24 24"><path d="M12 5V2L7 6l5 4V7a5 5 0 1 1-5 5H5a7 7 0 1 0 7-7Z"/></svg>
+          </button>
+          <div class="clabel">از نو</div>
+        </div>
+      </div>
+
+      <button class="end start" id="btn" aria-label="برقراری تماس">
+        <svg viewBox="0 0 24 24"><path d="M6.6 10.8a15.1 15.1 0 0 0 6.6 6.6l2.2-2.2a1 1 0 0 1 1-.25 11.4 11.4 0 0 0 3.6.57 1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1c0 1.25.2 2.45.57 3.6a1 1 0 0 1-.25 1z"/></svg>
+      </button>
+      <div class="hint" id="hint">برای تماس، دکمهٔ سبز را بزنید</div>
+    </div>
   </div>
-  <div class="hint" id="hint">میکروفون لازم است</div>
 </div>
 
 <script>
-/* آدرس سرور. چون همین صفحه روی همان دامنه است، آدرس نسبی کافی است. */
 const API = "api.php";
+/* کدام دانشنامه — از آدرس می‌آید (ویجت می‌فرستد) */
+const KIND = new URLSearchParams(location.search).get("kb") || "personal";
+const TITLE = new URLSearchParams(location.search).get("title") || "تماس صوتی";
+document.getElementById("name").textContent = TITLE;
 
-const SPEECH_LEVEL = 0.03;    // حساسیت تشخیص صدا
-const SILENCE_MS   = 1100;    // مکث پایان جمله
-const MIN_RING_MS  = 2800;    // حداقل مدت بوق
-const SHOW_TEXT    = false;   // نمایش متن شنیده‌شده (برای تست true کن)
+const SPEECH_LEVEL = 0.03;
+const SILENCE_MS   = 1100;
+const MIN_RING_MS  = 2800;
+let SHOW_TEXT      = false;
 
 const $ = id => document.getElementById(id);
 const player = new Audio();
 let stream, ctx, analyser, session, active = false, stopLoop = null;
 let ringOsc = null, ringGain = null, ringTimer = null, timerInt = null, startedAt = 0;
+let muted = false;
 
 const SILENT = "data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQAAAAA=";
 const say  = t => $("status").textContent = t;
 const mode = m => { $("stage").className = "stage " + m; };
 const log  = (h, t) => { if (SHOW_TEXT) $("log").innerHTML = "<b>" + h + ":</b> " + t; };
 
-/* ── بوق ──
-   بوق انتظار ایران: ۴۲۵ هرتز، ۱ ثانیه بوق و ۳ ثانیه سکوت. */
+/* ساعت نوار وضعیت */
+(function clock() {
+  const d = new Date();
+  $("clock").textContent = d.toLocaleTimeString("fa-IR", { hour: "2-digit", minute: "2-digit" });
+  setTimeout(clock, 20000);
+})();
+
+/* ── بوق: ۴۲۵ هرتز، ۱ ثانیه بوق و ۳ ثانیه سکوت ── */
 function ringStart() {
   try {
     const C = window.AudioContext || window.webkitAudioContext;
@@ -141,7 +233,7 @@ function ringStart() {
     };
     cycle();
     ringTimer = setInterval(cycle, 4000);
-  } catch (e) { /* بی‌صدا رد شو */ }
+  } catch (e) {}
 }
 function ringStop() {
   try {
@@ -161,7 +253,7 @@ function timerStart() {
 }
 function timerStop() { if (timerInt) { clearInterval(timerInt); timerInt = null; } }
 
-/* ── گفتن با صدای مرورگر (پشتیبان، وقتی ElevenLabs کار نمی‌کند) ── */
+/* ── گفتن با صدای مرورگر (پشتیبان) ── */
 function speakLocal(text) {
   return new Promise(resolve => {
     if (!("speechSynthesis" in window)) return resolve();
@@ -169,15 +261,37 @@ function speakLocal(text) {
     u.lang = "fa-IR";
     u.onend = u.onerror = () => resolve();
     speechSynthesis.speak(u);
-    setTimeout(resolve, 15000);   // سقف انتظار
+    setTimeout(resolve, 15000);
   });
 }
 
 $("btn").onclick = () => active ? hangUp("تماس پایان یافت") : startCall();
 
+$("muteBtn").onclick = () => {
+  muted = !muted;
+  $("muteBtn").classList.toggle("on", muted);
+  $("muteLbl").textContent = muted ? "باصدا" : "بی‌صدا";
+  if (muted) {
+    if (stopLoop) stopLoop();
+    say("میکروفون بسته است");
+  } else if (active) {
+    listen();
+  }
+};
+
+$("textBtn").onclick = () => {
+  SHOW_TEXT = !SHOW_TEXT;
+  $("textBtn").classList.toggle("on", SHOW_TEXT);
+  if (!SHOW_TEXT) $("log").innerHTML = "";
+};
+
+$("restartBtn").onclick = () => {
+  if (active) { hangUp("از نو…"); setTimeout(startCall, 400); }
+};
+
 async function startCall() {
   try {
-    player.src = SILENT; player.play().catch(() => {});   // باز کردن اجازهٔ پخش صدا
+    player.src = SILENT; player.play().catch(() => {});
     stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true } });
 
     if (!ctx) { const C = window.AudioContext || window.webkitAudioContext; if (C) ctx = new C(); }
@@ -186,23 +300,29 @@ async function startCall() {
     ctx.createMediaStreamSource(stream).connect(analyser);
 
     session = "call-" + Date.now();
-    active = true;
-    mode("ringing"); $("btn").classList.add("on"); $("btn").setAttribute("aria-label", "پایان تماس");
-    $("avatar").textContent = "☎";
-    $("sub").textContent = "در حال برقراری تماس";
+    active = true; muted = false;
+    mode("ringing");
+    $("btn").classList.remove("start"); $("btn").setAttribute("aria-label", "پایان تماس");
+    $("row6").style.display = "grid";
+    $("muteBtn").classList.remove("on"); $("muteLbl").textContent = "بی‌صدا";
     $("log").innerHTML = "";
-    say("در حال تماس…");
     $("hint").textContent = "برای قطع، دکمهٔ قرمز را بزنید";
+    say("در حال تماس…");
 
     ringStart();
     const t0 = Date.now();
     const res = await fetch(API, {
       method: "POST",
-      body: (() => { const fd = new FormData(); fd.append("sessionId", session); fd.append("event", "start"); return fd; })(),
+      body: (() => {
+        const fd = new FormData();
+        fd.append("sessionId", session);
+        fd.append("event", "start");
+        fd.append("kb", KIND);
+        return fd;
+      })(),
       cache: "no-store",
     }).catch(() => null);
 
-    // بوق حداقل چند لحظه بخورد، حتی اگر سرور سریع جواب بدهد
     const wait = Math.max(0, MIN_RING_MS - (Date.now() - t0));
     if (wait) await new Promise(r => setTimeout(r, wait));
     ringStop();
@@ -214,7 +334,6 @@ async function startCall() {
     await playResponse(res);
     if (!active) return;
     timerStart();
-    $("sub").textContent = "تماس برقرار است";
     listen();
   } catch (e) {
     ringStop();
@@ -222,7 +341,6 @@ async function startCall() {
   }
 }
 
-/* پاسخ سرور را پخش می‌کند؛ اگر صدا نبود، متن را با مرورگر می‌خواند */
 async function playResponse(res) {
   const type = res.headers.get("content-type") || "";
 
@@ -231,7 +349,7 @@ async function playResponse(res) {
     try { j = await res.json(); } catch (e) {}
     if (!j) return hangUp("پاسخ نامعتبر سرور");
     if (j.tts === "browser" && j.say) {
-      say("منشی صحبت می‌کند…");
+      say("در حال صحبت…");
       await speakLocal(j.say);
     } else if (j.err) {
       return hangUp("خطای سرور: " + j.err);
@@ -258,7 +376,7 @@ async function turn(blob, ext) {
   const fd = new FormData();
   fd.append("sessionId", session);
   fd.append("audio", blob, "audio." + ext);
-  say("در حال فکر کردن…");
+  say("…");
 
   let res;
   try {
@@ -270,19 +388,20 @@ async function turn(blob, ext) {
   const ended = await playResponse(res);
   if (!active) return;
   if (ended) return hangUp("تماس پایان یافت");
-  listen();
+  if (!muted) listen();
 }
 
 function speak(blob) {
   return new Promise(resolve => {
     player.src = URL.createObjectURL(blob);
     player.onended = player.onerror = resolve;
-    mode("speaking"); say("منشی صحبت می‌کند…");
+    mode("speaking"); say("در حال صحبت…");
     player.play().catch(resolve);
   });
 }
 
 function listen() {
+  if (muted) return;
   mode("listening"); say("بفرمایید، گوش می‌دهم…");
   const mime = MediaRecorder.isTypeSupported("audio/webm") ? "audio/webm" : "audio/mp4";
   const ext = mime === "audio/webm" ? "webm" : "mp4";
@@ -294,7 +413,7 @@ function listen() {
     rec = new MediaRecorder(stream, { mimeType: mime });
     rec.ondataavailable = e => e.data.size && chunks.push(e.data);
     rec.onstop = () => {
-      if (!keep || !active) return;
+      if (!keep || !active || muted) return;
       turn(new Blob(chunks, { type: mime }), ext).catch(e => hangUp("خطا: " + e.message));
     };
     rec.start(250);
@@ -302,7 +421,7 @@ function listen() {
   begin();
 
   const tick = () => {
-    if (!running || !active) return;
+    if (!running || !active || muted) return;
     analyser.getByteTimeDomainData(buf);
     let sum = 0;
     for (const v of buf) sum += ((v - 128) / 128) ** 2;
@@ -324,17 +443,16 @@ function listen() {
 
 function hangUp(msg) {
   active = false;
-  ringStop();
-  timerStop();
+  ringStop(); timerStop();
   if (stopLoop) stopLoop();
   try { player.pause(); } catch (e) {}
   if (stream) stream.getTracks().forEach(t => t.stop());
-  mode(""); $("btn").classList.remove("on"); $("btn").setAttribute("aria-label", "برقراری تماس");
-  $("avatar").textContent = "☎";
-  $("sub").textContent = "برای تماس دوباره، دکمهٔ سبز را بزنید";
-  $("hint").textContent = "میکروفون لازم است";
+  mode("");
+  $("btn").classList.add("start"); $("btn").setAttribute("aria-label", "برقراری تماس");
+  $("row6").style.display = "none";
+  $("timer").textContent = "";
+  $("hint").textContent = "برای تماس دوباره، دکمهٔ سبز را بزنید";
   say(msg || "تماس پایان یافت");
-  // به صفحهٔ والد خبر بده (وقتی داخل ویجت باز شده)
   try { if (window.parent !== window) window.parent.postMessage({ nyCall: "ended" }, "*"); } catch (e) {}
 }
 </script>

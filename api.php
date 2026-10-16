@@ -99,7 +99,9 @@ $meta  = [];
 /* ───── ۳) شروع تماس ───── */
 
 if ((string) ($_POST['event'] ?? '') === 'start') {
-    $r = brain_start($state);
+    // ویجت هر سایت نوع دانشنامهٔ خودش را می‌فرستد
+    $kind = (string) ($_POST['kb'] ?? 'personal');
+    $r = brain_start($state, $kind);
     v_sess_save($sid, $r['state']);
     v_log('start ' . $sid . ' ' . $ip);
     api_speak($r['say'], '', false, true);   // از کش: فوری

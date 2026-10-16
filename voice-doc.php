@@ -15,7 +15,7 @@ if (!defined('VOICE_APP')) {
     exit('forbidden');
 }
 
-const DOC_COLLS = ['prov', 'kb', 'cust', 'set', 'auth', 'note'];
+const DOC_COLLS = ['prov', 'kb', 'cust', 'set', 'auth', 'note', 'sec'];
 
 function doc_coll(string $coll): string
 {

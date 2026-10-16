@@ -61,6 +61,21 @@ function vset_save(array $kv): void
     @file_put_contents($f, (string) json_encode($ov, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT), LOCK_EX);
 }
 
+/** برش متن با شمارش کاراکتر، بدون نیاز به mbstring */
+function v_cut(string $s, int $len): string
+{
+    if ($len <= 0) {
+        return '';
+    }
+    if (function_exists('mb_substr')) {
+        return mb_substr($s, 0, $len);
+    }
+    if (preg_match('/^.{0,' . $len . '}/us', $s, $m)) {
+        return $m[0];
+    }
+    return substr($s, 0, $len);
+}
+
 function v_log(string $msg): void
 {
     @file_put_contents(
@@ -79,6 +94,10 @@ function v_log(string $msg): void
  */
 function v_http(string $url, array $o = []): array
 {
+    if (!function_exists('curl_init')) {
+        v_log('curl روی این سرور فعال نیست');
+        return ['code' => 0, 'body' => '', 'type' => '', 'err' => 'curl unavailable'];
+    }
     $ch = curl_init($url);
     curl_setopt_array($ch, [
         CURLOPT_RETURNTRANSFER => true,
@@ -263,21 +282,14 @@ function v_chat(string $base, string $key, string $model, array $messages, bool 
     if ($jsonMode) {
         $payload['response_format'] = ['type' => 'json_object'];
     }
+    // مدل‌های استدلالی (gpt-oss) تمام سقف توکن را صرف فکر کردن می‌کنند و
+    // خروجی خالی می‌ماند. با reasoning_effort=low این هدر نمی‌رود.
+    if (stripos($model, 'gpt-oss') !== false) {
+        $payload['reasoning_effort'] = 'low';
+    }
 
-    $r = v_http(rtrim($base, '/') . '/chat/completions', [
-        'method'  => 'POST',
-        'headers' => [
-            'Authorization: Bearer ' . $key,
-            'Content-Type: application/json',
-        ],
-        'body'    => json_encode($payload, JSON_UNESCAPED_UNICODE),
-        'timeout' => 40,
-    ]);
-
-    // بعضی درگاه‌ها response_format را قبول نمی‌کنند → یک بار بدون آن
-    if ($jsonMode && $r['code'] === 400) {
-        unset($payload['response_format']);
-        $r = v_http(rtrim($base, '/') . '/chat/completions', [
+    $post = function () use ($base, $key, $payload): array {
+        return v_http(rtrim($base, '/') . '/chat/completions', [
             'method'  => 'POST',
             'headers' => [
                 'Authorization: Bearer ' . $key,
@@ -286,6 +298,27 @@ function v_chat(string $base, string $key, string $model, array $messages, bool 
             'body'    => json_encode($payload, JSON_UNESCAPED_UNICODE),
             'timeout' => 40,
         ]);
+    };
+
+    $r = $post();
+
+    // محدودیت نرخ (۴۲۹): چند لحظه صبر کن و یک بار دیگر بپرس.
+    // Groq رایگان ۸۰۰۰ توکن در دقیقه است، پس این حالت واقعاً پیش می‌آید.
+    if ($r['code'] === 429) {
+        $wait = 3;
+        if (preg_match('/try again in ([0-9.]+)s/i', $r['body'], $m)) {
+            $wait = (int) ceil((float) $m[1]) + 1;
+        }
+        $wait = max(2, min(12, $wait));
+        v_log('LLM 429 — صبر ' . $wait . ' ثانیه و تلاش دوباره');
+        sleep($wait);
+        $r = $post();
+    }
+
+    // بعضی درگاه‌ها response_format را قبول نمی‌کنند → یک بار بدون آن
+    if ($jsonMode && $r['code'] === 400) {
+        unset($payload['response_format']);
+        $r = $post();
     }
 
     if ($r['code'] !== 200) {

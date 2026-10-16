@@ -47,7 +47,7 @@ if ($method !== 'POST') {
  * اگر ElevenLabs کار نکرد و پشتیبان مرورگر روشن باشد، متن را JSON می‌فرستیم
  * تا مرورگر خودش بخواند — تماس قطع نمی‌شود و هزینه‌ای هم ندارد.
  */
-function api_speak(string $say, string $heard, bool $end, bool $cache = false): void
+function api_speak(string $say, string $heard, bool $end, bool $cache = false, string $need = ''): void
 {
     $audio = $cache ? v_tts_cached($say) : v_tts($say);
 
@@ -58,10 +58,11 @@ function api_speak(string $say, string $heard, bool $end, bool $cache = false): 
                 header('X-Voice-Heard: ' . rawurlencode($heard));
                 header('X-Voice-Say: ' . rawurlencode($say));
                 header('X-Call-Ended: ' . ($end ? 'true' : 'false'));
+                header('X-Voice-Need: ' . $need);
             }
             echo json_encode([
                 'ok' => true, 'tts' => 'browser', 'say' => $say,
-                'end' => $end, 'heard' => $heard,
+                'end' => $end, 'heard' => $heard, 'need' => $need,
             ], JSON_UNESCAPED_UNICODE);
             exit;
         }
@@ -72,6 +73,7 @@ function api_speak(string $say, string $heard, bool $end, bool $cache = false): 
         header('X-Voice-Heard: ' . rawurlencode($heard));
         header('X-Voice-Say: ' . rawurlencode($say));
         header('X-Call-Ended: ' . ($end ? 'true' : 'false'));
+        header('X-Voice-Need: ' . $need);
     }
     v_out_audio($audio);
 }
@@ -107,7 +109,19 @@ if ((string) ($_POST['event'] ?? '') === 'start') {
     api_speak($r['say'], '', false, true);   // از کش: فوری
 }
 
-/* ───── ۴) دریافت جملهٔ کاربر ───── */
+/* ───── ۴) دریافت جملهٔ کاربر ─────
+ * دو راه: فایل صوتی (میکروفون) یا متن (صفحه‌کلید شماره در مرورگر).
+ * صفحه‌کلید لازم است چون گفتن ۱۱ رقم پشت سر هم برای تشخیص گفتار سخت است.
+ */
+
+$viaText = trim((string) ($_POST['text'] ?? '')) !== '';
+
+if ($viaText) {
+    $heard = v_cut(trim((string) $_POST['text']), 120);
+    $t0    = microtime(true);
+    $t1    = $t0;
+    v_log('turn(text) «' . $heard . '»');
+} else {
 
 if (!isset($_FILES['audio'])) {
     v_out_err('no_audio', 400);
@@ -145,6 +159,8 @@ if ($heard === '') {
     v_log('stt empty ' . $sid);
     v_say_or_err(brain_text('didnt_hear'), 'stt');
 }
+
+}   // پایان شاخهٔ صوتی
 
 /* ───── ۶) مغز گفتگو ───── */
 
@@ -190,4 +206,7 @@ if ($end) {
     );
 }
 
-api_speak($say, $heard, $end);
+// اگر منشی منتظر شماره است، به مرورگر بگو صفحه‌کلید را باز کند
+$need = ($state['stage'] === 'awaiting_info' && (string) $state['phone'] === '') ? 'phone' : '';
+
+api_speak($say, $heard, $end, false, $need);

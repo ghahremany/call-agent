@@ -73,7 +73,7 @@ def main() -> int:
         raw, code, hdrs = e.read(), e.code, e.headers
 
     sys.stderr.write(f"[HTTP {code}] {hdrs.get('Content-Type','')}\n")
-    for k in ("X-Voice-Heard", "X-Voice-Say", "X-Call-Ended"):
+    for k in ("X-Voice-Heard", "X-Voice-Say", "X-Call-Ended", "X-Voice-Need"):
         if hdrs.get(k):
             sys.stderr.write(f"[{k}] {urllib.parse.unquote(hdrs[k])}\n")
 

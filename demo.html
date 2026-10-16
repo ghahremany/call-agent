@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>آزمون منشی صوتی</title>
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#eef4f3;color:#12302f;font-family:Vazirmatn,Tahoma,sans-serif;padding:40px 20px;line-height:2}
+.wrap{max-width:620px;margin:0 auto}
+h1{font-size:1.5rem;margin:0 0 6px}
+.sub{color:#5b7473;font-size:.9rem;margin-bottom:26px}
+.card{background:#fff;border:1px solid #d7e3e1;border-radius:14px;padding:20px;margin-bottom:16px}
+ol{padding-right:20px;margin:0}
+li{margin-bottom:8px}
+code{background:#f3f7f6;padding:2px 7px;border-radius:6px;direction:ltr;display:inline-block;font-size:.85rem}
+a{color:#1b6b68}
+.pill{display:inline-block;background:#dff2ee;color:#1b6b68;border-radius:20px;padding:2px 12px;font-size:.78rem}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>آزمون منشی صوتی</h1>
+  <div class="sub">صفحهٔ آزمایشی — دکمهٔ سبز گوشهٔ پایین‌راست را بزن.</div>
+
+  <div class="card">
+    <h3 style="margin-top:0">چطور تست کنی</h3>
+    <ol>
+      <li>دکمهٔ <b>سبز تلفن</b> را بزن (کنار دکمهٔ قرمز چت).</li>
+      <li>مرورگر اجازهٔ میکروفون می‌خواهد — <b>اجازه بده</b>.</li>
+      <li>چند لحظه بوق می‌خورد، بعد منشی جواب می‌دهد.</li>
+      <li>بگو: «میخوام وقت رزرو کنم» → بعد «بله» → بعد نام و شماره‌ات.</li>
+      <li>رزرو همان لحظه در <a href="panel.php">پنل</a> ثبت می‌شود.</li>
+    </ol>
+  </div>
+
+  <div class="card">
+    <h3 style="margin-top:0">نکته‌ها</h3>
+    <ul style="padding-right:20px;margin:0">
+      <li>میکروفون فقط روی <code>https</code> یا <code>localhost</code> کار می‌کند.</li>
+      <li>شمارهٔ موبایل را می‌توانی رقم‌به‌رقم بگویی («صفر نه یک دو…») یا سه‌رقمی («صفر نهصد و دوازده…»).</li>
+      <li>اگر ElevenLabs کار نکند، مرورگر خودش متن را می‌خواند — تماس قطع نمی‌شود.</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h3 style="margin-top:0">نصب روی سایت خودت</h3>
+    <p>فقط یک خط، قبل از <code>&lt;/body&gt;</code>:</p>
+    <p><code>&lt;script src="https://ghahremani.xo.je/voice/voice-widget.js" defer&gt;&lt;/script&gt;</code></p>
+    <p class="sub" style="margin:0">دکمه خودش کنار لوگوی قرمز چت می‌نشیند.</p>
+  </div>
+
+  <p><span class="pill">صفحهٔ تماس مستقیم</span> <a href="call.html">call.html</a></p>
+</div>
+
+<script src="voice-widget.js" defer></script>
+</body>
+</html>

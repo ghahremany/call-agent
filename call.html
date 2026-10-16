@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="robots" content="noindex">
+<title>تماس با کلینیک</title>
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#eaf5f3; --mute:#9fb8b5; --accent:#1b6b68; --ring:#3fbfae;
+  --end:#c0392b; --dark:#0d1f22;
+}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{
+  background:radial-gradient(120% 90% at 50% 0%, #16383b 0%, #0d1f22 60%, #08161a 100%);
+  color:var(--ink); font-family:Vazirmatn,Tahoma,sans-serif;
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  gap:16px; padding:18px; text-align:center; overflow:hidden;
+}
+.frame{
+  width:100%; max-width:380px; height:100%; max-height:720px;
+  display:flex; flex-direction:column; align-items:center; justify-content:space-between;
+  padding:34px 20px 26px; border-radius:34px;
+  background:linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.01));
+  border:1px solid rgba(255,255,255,.08);
+  box-shadow:0 30px 80px rgba(0,0,0,.55), inset 0 1px 0 rgba(255,255,255,.07);
+}
+.top{display:flex;flex-direction:column;align-items:center;gap:6px}
+.clinic{font-size:1.15rem;font-weight:800;letter-spacing:.2px}
+.sub{color:var(--mute);font-size:.82rem;min-height:1.4em}
+
+.stage{position:relative;width:170px;height:170px;display:grid;place-items:center;margin:8px 0}
+.ring{position:absolute;inset:0;border-radius:50%;background:var(--ring);opacity:.16;transform:scale(var(--lv,1));transition:transform .09s linear}
+.avatar{
+  position:relative;width:118px;height:118px;border-radius:50%;
+  background:linear-gradient(150deg,#2a8f88,#14524f);
+  display:grid;place-items:center;font-size:44px;font-weight:800;color:#eafffb;
+  box-shadow:0 14px 40px rgba(0,0,0,.4);
+}
+/* موج‌های بوق */
+.ringing .ring{animation:wave 1.6s ease-out infinite}
+.ringing .ring:nth-child(2){animation-delay:.55s}
+@keyframes wave{0%{opacity:.34;transform:scale(1)}100%{opacity:0;transform:scale(1.55)}}
+/* موج‌های گفتار */
+.speaking .ring{animation:pulse 1.2s ease-in-out infinite}
+@keyframes pulse{50%{transform:scale(1.22)}}
+
+.status{font-weight:600;font-size:.95rem;min-height:1.6em}
+.timer{color:var(--mute);font-size:.8rem;font-variant-numeric:tabular-nums;min-height:1.2em}
+#log{color:var(--mute);font-size:.76rem;line-height:1.8;max-width:320px;min-height:2.4em}
+#log b{color:#cfe9e5;font-weight:600}
+
+.controls{display:flex;gap:14px;align-items:center}
+button{
+  border:0;cursor:pointer;font-family:inherit;display:grid;place-items:center;
+  transition:transform .18s, background .2s, box-shadow .2s;
+}
+#btn{
+  width:72px;height:72px;border-radius:50%;background:#1f7a52;color:#fff;
+  box-shadow:0 12px 30px rgba(31,122,82,.45);
+}
+#btn:hover{transform:scale(1.05)}
+#btn.on{background:var(--end);box-shadow:0 12px 30px rgba(192,57,43,.5)}
+#btn svg{width:32px;height:32px;fill:#fff;transition:transform .25s}
+#btn.on svg{transform:rotate(135deg)}
+.hint{color:var(--mute);font-size:.76rem}
+@media (prefers-reduced-motion:reduce){.ring{animation:none!important}}
+</style>
+</head>
+<body>
+<div class="frame">
+  <div class="top">
+    <div class="clinic" id="clinic">کلینیک زیبایی حاتم</div>
+    <div class="sub" id="sub">برای رزرو وقت معاینه، روی دکمهٔ سبز بزنید</div>
+  </div>
+
+  <div class="stage" id="stage">
+    <div class="ring"></div>
+    <div class="ring"></div>
+    <div class="avatar" id="avatar">☎</div>
+  </div>
+
+  <div>
+    <div class="status" id="status">آمادهٔ تماس</div>
+    <div class="timer" id="timer"></div>
+    <div id="log"></div>
+  </div>
+
+  <div class="controls">
+    <button id="btn" aria-label="برقراری تماس">
+      <svg viewBox="0 0 24 24"><path d="M6.6 10.8a15.1 15.1 0 0 0 6.6 6.6l2.2-2.2a1 1 0 0 1 1-.25 11.4 11.4 0 0 0 3.6.57 1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1c0 1.25.2 2.45.57 3.6a1 1 0 0 1-.25 1z"/></svg>
+    </button>
+  </div>
+  <div class="hint" id="hint">میکروفون لازم است</div>
+</div>
+
+<script>
+/* آدرس سرور. چون همین صفحه روی همان دامنه است، آدرس نسبی کافی است. */
+const API = "api.php";
+
+const SPEECH_LEVEL = 0.03;    // حساسیت تشخیص صدا
+const SILENCE_MS   = 1100;    // مکث پایان جمله
+const MIN_RING_MS  = 2800;    // حداقل مدت بوق
+const SHOW_TEXT    = false;   // نمایش متن شنیده‌شده (برای تست true کن)
+
+const $ = id => document.getElementById(id);
+const player = new Audio();
+let stream, ctx, analyser, session, active = false, stopLoop = null;
+let ringOsc = null, ringGain = null, ringTimer = null, timerInt = null, startedAt = 0;
+
+const SILENT = "data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQAAAAA=";
+const say  = t => $("status").textContent = t;
+const mode = m => { $("stage").className = "stage " + m; };
+const log  = (h, t) => { if (SHOW_TEXT) $("log").innerHTML = "<b>" + h + ":</b> " + t; };
+
+/* ── بوق ──
+   بوق انتظار ایران: ۴۲۵ هرتز، ۱ ثانیه بوق و ۳ ثانیه سکوت. */
+function ringStart() {
+  try {
+    const C = window.AudioContext || window.webkitAudioContext;
+    if (!C) return;
+    if (!ctx) ctx = new C();
+    if (ctx.state === "suspended") ctx.resume();
+    ringOsc = ctx.createOscillator();
+    ringGain = ctx.createGain();
+    ringOsc.type = "sine";
+    ringOsc.frequency.value = 425;
+    ringGain.gain.value = 0;
+    ringOsc.connect(ringGain).connect(ctx.destination);
+    ringOsc.start();
+    const cycle = () => {
+      if (!ringGain) return;
+      const t = ctx.currentTime;
+      ringGain.gain.cancelScheduledValues(t);
+      ringGain.gain.setValueAtTime(0, t);
+      ringGain.gain.linearRampToValueAtTime(0.06, t + 0.04);
+      ringGain.gain.setValueAtTime(0.06, t + 1.0);
+      ringGain.gain.linearRampToValueAtTime(0, t + 1.06);
+    };
+    cycle();
+    ringTimer = setInterval(cycle, 4000);
+  } catch (e) { /* بی‌صدا رد شو */ }
+}
+function ringStop() {
+  try {
+    if (ringTimer) { clearInterval(ringTimer); ringTimer = null; }
+    if (ringGain && ctx) { ringGain.gain.cancelScheduledValues(ctx.currentTime); ringGain.gain.value = 0; }
+    if (ringOsc) { ringOsc.stop(); ringOsc.disconnect(); ringOsc = null; }
+    if (ringGain) { ringGain.disconnect(); ringGain = null; }
+  } catch (e) {}
+}
+
+function timerStart() {
+  startedAt = Date.now();
+  timerInt = setInterval(() => {
+    const s = Math.floor((Date.now() - startedAt) / 1000);
+    $("timer").textContent = String(Math.floor(s / 60)).padStart(2, "0") + ":" + String(s % 60).padStart(2, "0");
+  }, 500);
+}
+function timerStop() { if (timerInt) { clearInterval(timerInt); timerInt = null; } }
+
+/* ── گفتن با صدای مرورگر (پشتیبان، وقتی ElevenLabs کار نمی‌کند) ── */
+function speakLocal(text) {
+  return new Promise(resolve => {
+    if (!("speechSynthesis" in window)) return resolve();
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = "fa-IR";
+    u.onend = u.onerror = () => resolve();
+    speechSynthesis.speak(u);
+    setTimeout(resolve, 15000);   // سقف انتظار
+  });
+}
+
+$("btn").onclick = () => active ? hangUp("تماس پایان یافت") : startCall();
+
+async function startCall() {
+  try {
+    player.src = SILENT; player.play().catch(() => {});   // باز کردن اجازهٔ پخش صدا
+    stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true } });
+
+    if (!ctx) { const C = window.AudioContext || window.webkitAudioContext; if (C) ctx = new C(); }
+    if (ctx.state === "suspended") ctx.resume();
+    analyser = ctx.createAnalyser(); analyser.fftSize = 1024;
+    ctx.createMediaStreamSource(stream).connect(analyser);
+
+    session = "call-" + Date.now();
+    active = true;
+    mode("ringing"); $("btn").classList.add("on"); $("btn").setAttribute("aria-label", "پایان تماس");
+    $("avatar").textContent = "☎";
+    $("sub").textContent = "در حال برقراری تماس";
+    $("log").innerHTML = "";
+    say("در حال تماس…");
+    $("hint").textContent = "برای قطع، دکمهٔ قرمز را بزنید";
+
+    ringStart();
+    const t0 = Date.now();
+    const res = await fetch(API, {
+      method: "POST",
+      body: (() => { const fd = new FormData(); fd.append("sessionId", session); fd.append("event", "start"); return fd; })(),
+      cache: "no-store",
+    }).catch(() => null);
+
+    // بوق حداقل چند لحظه بخورد، حتی اگر سرور سریع جواب بدهد
+    const wait = Math.max(0, MIN_RING_MS - (Date.now() - t0));
+    if (wait) await new Promise(r => setTimeout(r, wait));
+    ringStop();
+
+    if (!active) return;
+    if (!res) return hangUp("ارتباط با سرور برقرار نشد");
+
+    mode("speaking");
+    await playResponse(res);
+    if (!active) return;
+    timerStart();
+    $("sub").textContent = "تماس برقرار است";
+    listen();
+  } catch (e) {
+    ringStop();
+    hangUp(e && e.name === "NotAllowedError" ? "دسترسی به میکروفون داده نشد" : "خطا: " + (e && e.message));
+  }
+}
+
+/* پاسخ سرور را پخش می‌کند؛ اگر صدا نبود، متن را با مرورگر می‌خواند */
+async function playResponse(res) {
+  const type = res.headers.get("content-type") || "";
+
+  if (type.indexOf("application/json") === 0) {
+    let j = null;
+    try { j = await res.json(); } catch (e) {}
+    if (!j) return hangUp("پاسخ نامعتبر سرور");
+    if (j.tts === "browser" && j.say) {
+      say("منشی صحبت می‌کند…");
+      await speakLocal(j.say);
+    } else if (j.err) {
+      return hangUp("خطای سرور: " + j.err);
+    }
+    return j.end === true;
+  }
+
+  if (type.indexOf("audio/") !== 0) {
+    let msg = "پاسخ سرور " + res.status;
+    try { const j = await res.json(); if (j && j.err) msg = j.err; } catch (e) {}
+    hangUp("خطای سرور: " + msg);
+    return false;
+  }
+
+  const h = res.headers.get("x-voice-heard"), s = res.headers.get("x-voice-say");
+  if (s) log(h ? decodeURIComponent(h) : "—", decodeURIComponent(s));
+
+  const blob = await res.blob();
+  await speak(blob);
+  return (res.headers.get("x-call-ended") || "") === "true";
+}
+
+async function turn(blob, ext) {
+  const fd = new FormData();
+  fd.append("sessionId", session);
+  fd.append("audio", blob, "audio." + ext);
+  say("در حال فکر کردن…");
+
+  let res;
+  try {
+    res = await fetch(API, { method: "POST", body: fd, cache: "no-store" });
+  } catch (e) {
+    return hangUp("ارتباط با سرور قطع شد");
+  }
+
+  const ended = await playResponse(res);
+  if (!active) return;
+  if (ended) return hangUp("تماس پایان یافت");
+  listen();
+}
+
+function speak(blob) {
+  return new Promise(resolve => {
+    player.src = URL.createObjectURL(blob);
+    player.onended = player.onerror = resolve;
+    mode("speaking"); say("منشی صحبت می‌کند…");
+    player.play().catch(resolve);
+  });
+}
+
+function listen() {
+  mode("listening"); say("بفرمایید، گوش می‌دهم…");
+  const mime = MediaRecorder.isTypeSupported("audio/webm") ? "audio/webm" : "audio/mp4";
+  const ext = mime === "audio/webm" ? "webm" : "mp4";
+  const buf = new Uint8Array(analyser.fftSize);
+  let rec, chunks, heard, speechStart, lastVoice, idleStart, keep, running = true;
+
+  const begin = () => {
+    chunks = []; heard = false; keep = false; idleStart = Date.now();
+    rec = new MediaRecorder(stream, { mimeType: mime });
+    rec.ondataavailable = e => e.data.size && chunks.push(e.data);
+    rec.onstop = () => {
+      if (!keep || !active) return;
+      turn(new Blob(chunks, { type: mime }), ext).catch(e => hangUp("خطا: " + e.message));
+    };
+    rec.start(250);
+  };
+  begin();
+
+  const tick = () => {
+    if (!running || !active) return;
+    analyser.getByteTimeDomainData(buf);
+    let sum = 0;
+    for (const v of buf) sum += ((v - 128) / 128) ** 2;
+    const level = Math.sqrt(sum / buf.length);
+    const r = $("stage").querySelector(".ring");
+    if (r) r.style.setProperty("--lv", 1 + Math.min(level * 6, 0.5));
+    const now = Date.now();
+    if (level > SPEECH_LEVEL) { if (!heard) { heard = true; speechStart = now; } lastVoice = now; }
+    if (heard && now - lastVoice > SILENCE_MS) {
+      running = false;
+      if (lastVoice - speechStart > 300) { keep = true; if (r) r.style.setProperty("--lv", 1); rec.stop(); return; }
+      rec.stop(); begin(); running = true;
+    } else if (!heard && now - idleStart > 10000) { rec.stop(); begin(); }
+    requestAnimationFrame(tick);
+  };
+  stopLoop = () => { running = false; if (rec && rec.state !== "inactive") rec.stop(); };
+  requestAnimationFrame(tick);
+}
+
+function hangUp(msg) {
+  active = false;
+  ringStop();
+  timerStop();
+  if (stopLoop) stopLoop();
+  try { player.pause(); } catch (e) {}
+  if (stream) stream.getTracks().forEach(t => t.stop());
+  mode(""); $("btn").classList.remove("on"); $("btn").setAttribute("aria-label", "برقراری تماس");
+  $("avatar").textContent = "☎";
+  $("sub").textContent = "برای تماس دوباره، دکمهٔ سبز را بزنید";
+  $("hint").textContent = "میکروفون لازم است";
+  say(msg || "تماس پایان یافت");
+  // به صفحهٔ والد خبر بده (وقتی داخل ویجت باز شده)
+  try { if (window.parent !== window) window.parent.postMessage({ nyCall: "ended" }, "*"); } catch (e) {}
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,41 @@
+# منشی صوتی — محافظت از فایل‌های داخلی
+Options -Indexes
+DirectoryIndex call.html
+
+# فایل‌های داخلی (کلیدها + هسته) از وب مسدود
+<Files "voice-config.php">
+  <IfModule mod_authz_core.c>
+    Require all denied
+  </IfModule>
+  <IfModule !mod_authz_core.c>
+    Order allow,deny
+    Deny from all
+  </IfModule>
+</Files>
+
+<Files "voice-secrets.php">
+  <IfModule mod_authz_core.c>
+    Require all denied
+  </IfModule>
+  <IfModule !mod_authz_core.c>
+    Order allow,deny
+    Deny from all
+  </IfModule>
+</Files>
+
+<Files "voice-core.php">
+  <IfModule mod_authz_core.c>
+    Require all denied
+  </IfModule>
+  <IfModule !mod_authz_core.c>
+    Order allow,deny
+    Deny from all
+  </IfModule>
+</Files>
+
+# پاسخ‌های api.php هیچ‌وقت کش نشوند
+<Files "api.php">
+  <IfModule mod_headers.c>
+    Header set Cache-Control "no-store, no-cache, must-revalidate"
+  </IfModule>
+</Files>

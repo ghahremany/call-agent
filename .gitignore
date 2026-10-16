@@ -1,0 +1,7 @@
+# کلیدها — هرگز کامیت نشوند
+voice-secrets.php
+# داده‌های محلی
+data/
+sessions/
+cache/
+logs/
